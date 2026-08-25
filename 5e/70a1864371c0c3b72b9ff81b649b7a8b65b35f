@@ -1,0 +1,25 @@
+package.json
+  s_fadcfb043736a2::t_ec39cc43da7ca4 23
+lib/trueforge.ts
+  s_fadcfb043736a2::t_53e4c40bbc23c8 1-42
+app/api/harness/route.ts
+  s_fadcfb043736a2::t_53e4c40bbc23c8 1-8
+pnpm-lock.yaml
+  s_fadcfb043736a2::t_86cfd6171ed8ec 11-13,785-788,3282-3283
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "5e70a1864371c0c3b72b9ff81b649b7a8b65b35f",
+  "prompts": {},
+  "sessions": {
+    "s_fadcfb043736a2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8e26c52f-6f65-4b7a-84a1-8d167a820498",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Rishit Sharma <rishitsharmar89@gmail.com>"
+    }
+  }
+}
