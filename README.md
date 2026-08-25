@@ -35,32 +35,32 @@ The first end-to-end case is intentionally narrow and reliable:
 
 ## Stack at a glance
 
-| Layer | Choice |
-| --- | --- |
-| Product app | Next.js App Router, React, TypeScript |
-| Styling and motion | Tailwind CSS, Radix primitives, Motion |
-| Agent runtime | TrueForge server and `@truefoundry/trueforge-sdk` |
-| Reusable instructions | Git-backed Rarecase debugging `SKILL.md` |
-| External systems | Sentry MCP and GitHub MCP |
-| Isolated execution | Daytona through TrueForge's sandbox-as-tool |
-| Browser evidence | Playwright tests and traces |
-| Error source | Sentry SDK and Session Replay on the demo route |
-| Code review | Qodo throughout development and on the generated GitHub pull request |
-| Local runtime | Node.js 22.13+, pnpm, TrueForge SQLite mode |
-| Deployment | Vercel for the web app; TrueForge local for the judged demo |
+| Layer                 | Choice                                                               |
+| --------------------- | -------------------------------------------------------------------- |
+| Product app           | Next.js App Router, React, TypeScript                                |
+| Styling and motion    | Tailwind CSS, Radix primitives, Motion                               |
+| Agent runtime         | TrueForge server and `@truefoundry/trueforge-sdk`                    |
+| Reusable instructions | Git-backed Rarecase debugging `SKILL.md`                             |
+| External systems      | Sentry MCP and GitHub MCP                                            |
+| Isolated execution    | Daytona through TrueForge's sandbox-as-tool                          |
+| Browser evidence      | Playwright tests and traces                                          |
+| Error source          | Sentry SDK and Session Replay on the demo route                      |
+| Code review           | Qodo throughout development and on the generated GitHub pull request |
+| Local runtime         | Node.js 22.13+, pnpm, TrueForge SQLite mode                          |
+| Deployment            | Vercel for the web app; TrueForge local for the judged demo          |
 
 ## Hackathon proof
 
-| Required proof | Rarecase makes it visible |
-| --- | --- |
-| Reach a real tool through MCP | Sentry issue reads and GitHub repository reads/writes appear in the TrueForge activity rail. |
-| Run generated code in a sandbox | The generated Playwright regression test executes in a Daytona sandbox provisioned by TrueForge. |
-| Delegate meaningful work | Investigator, Reproducer, and Verifier run as bounded dynamic TrueForge subagents with visible outputs. |
-| Use reusable instructions | The saved agent loads a repository-owned Rarecase debugging skill that defines the evidence and verification protocol. |
-| Carry context across sessions | The case is backed by a persistent TrueForge session and restores its stage, artifacts, and pending approval after refresh. |
-| Pause before a sensitive action | TrueForge pauses before every GitHub write and shows the exact action for Allow/Deny. |
-| Use TrueForge as a core dependency | Sessions, tools, sandbox lifecycle, streamed events, approval, and recovery all depend on the harness. |
-| Demonstrate code quality | Qodo reviews development pull requests throughout the build and independently reviews the agent-generated pull request. |
+| Required proof                     | Rarecase makes it visible                                                                                                   |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Reach a real tool through MCP      | Sentry issue reads and GitHub repository reads/writes appear in the TrueForge activity rail.                                |
+| Run generated code in a sandbox    | The generated Playwright regression test executes in a Daytona sandbox provisioned by TrueForge.                            |
+| Delegate meaningful work           | Investigator, Reproducer, and Verifier run as bounded dynamic TrueForge subagents with visible outputs.                     |
+| Use reusable instructions          | The saved agent loads a repository-owned Rarecase debugging skill that defines the evidence and verification protocol.      |
+| Carry context across sessions      | The case is backed by a persistent TrueForge session and restores its stage, artifacts, and pending approval after refresh. |
+| Pause before a sensitive action    | TrueForge pauses before every GitHub write and shows the exact action for Allow/Deny.                                       |
+| Use TrueForge as a core dependency | Sessions, tools, sandbox lifecycle, streamed events, approval, and recovery all depend on the harness.                      |
+| Demonstrate code quality           | Qodo reviews development pull requests throughout the build and independently reviews the agent-generated pull request.     |
 
 ## Current status
 
