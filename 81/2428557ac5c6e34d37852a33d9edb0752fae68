@@ -1,15 +1,20 @@
 .prettierignore
   s_fadcfb043736a2::t_622221b2a901ef 1-7
+  s_fadcfb043736a2::t_63301848e9a9d7 1-7
 .prettierrc.json
   s_fadcfb043736a2::t_26700b759f75ad 1-7
+  s_fadcfb043736a2::t_63301848e9a9d7 1-7
 README.md
   s_fadcfb043736a2::t_93aad40b1f61af 38-50,54-63
 eslint.config.mjs
   s_fadcfb043736a2::t_3b42edc1332a44 4,9
+  s_fadcfb043736a2::t_14d34302f7f9c2 4,9
 package.json
   s_fadcfb043736a2::t_74a18fe5d5a1c3 13-15,29-30
+  s_fadcfb043736a2::t_80942f82a15c5e 13-15,29-30
 pnpm-lock.yaml
   s_fadcfb043736a2::t_9633f1669071e4 39-44,1032-1037,1739-1743,3055-3058,3811-3812
+  s_fadcfb043736a2::t_8df5163962e5e9 39-44,1032-1037,1739-1743,3055-3058,3811-3812
 ---
 {
   "schema_version": "authorship/3.0.0",
