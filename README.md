@@ -62,6 +62,32 @@ The first end-to-end case is intentionally narrow and reliable:
 | Use TrueForge as a core dependency | Sessions, tools, sandbox lifecycle, streamed events, approval, and recovery all depend on the harness.                      |
 | Demonstrate code quality           | Qodo reviews development pull requests throughout the build and independently reviews the agent-generated pull request.     |
 
+## Getting started
+
+Requires Node.js 22.13 or newer and pnpm.
+
+```bash
+pnpm install
+cp .env.example .env.local     # TrueForge base URL and Sentry DSN
+pnpm dev                       # http://localhost:3000
+```
+
+Quality checks, in increasing strength:
+
+```bash
+pnpm format:check   # Prettier
+pnpm lint           # ESLint
+pnpm typecheck      # next typegen, then tsc --noEmit in strict mode
+pnpm test           # Vitest unit tests
+pnpm verify         # all four, in order
+pnpm build          # Next.js production build
+pnpm test:e2e       # Playwright, mobile Chromium at 390x844
+```
+
+Playwright needs its browser once: `pnpm exec playwright install chromium`.
+
+Credentials for models, Sentry, GitHub, and Daytona belong to the TrueForge harness, not to this application. `.env.local` holds only the harness location and the public Sentry DSN used by the checkout fixture.
+
 ## Current status
 
-Project definition is locked and ready for implementation. The first vertical slice is a real Sentry event, a saved TrueForge agent and skill, a persistent session, and a visible case timeline before autonomous patching is added.
+The application shell, quality gates, and the repository-owned debugging skill are in place. The next vertical slice is a real Sentry event, a saved TrueForge agent, a persistent session, and a visible case timeline before autonomous patching is added.
