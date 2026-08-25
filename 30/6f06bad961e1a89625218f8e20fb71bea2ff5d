@@ -1,0 +1,34 @@
+package.json
+  s_fadcfb043736a2::t_2be8d8e350225a 14
+  s_fadcfb043736a2::t_26b0998e4515b8 13,15-20
+  s_fadcfb043736a2::t_01efc0757885fc 9-12,21-24
+tsconfig.json
+  s_fadcfb043736a2::t_01efc0757885fc 1-34
+app/layout.tsx
+  s_fadcfb043736a2::t_01efc0757885fc 1-3,7-15
+  s_fadcfb043736a2::t_14d34302f7f9c2 4-6
+app/page.tsx
+  s_fadcfb043736a2::t_14d34302f7f9c2 4
+  s_fadcfb043736a2::t_01efc0757885fc 1-3,5-7
+next.config.ts
+  s_fadcfb043736a2::t_01efc0757885fc 1-2,4-5
+  s_fadcfb043736a2::t_8c2c87173623cb 3
+pnpm-lock.yaml
+  s_fadcfb043736a2::t_764f3efa1c0c1b 1-1039
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "306f06bad961e1a89625218f8e20fb71bea2ff5d",
+  "prompts": {},
+  "sessions": {
+    "s_fadcfb043736a2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8e26c52f-6f65-4b7a-84a1-8d167a820498",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Rishit Sharma <rishitsharmar89@gmail.com>"
+    }
+  }
+}
