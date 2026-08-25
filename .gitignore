@@ -1,0 +1,30 @@
+# Private working docs — never committed
+docs/
+.serena/
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+
+# Env and secrets
+.env
+.env.*
+!.env.example
+
+# Test artifacts
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+coverage/
+
+# OS / editor
+.DS_Store
+*.log
