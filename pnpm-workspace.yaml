@@ -1,0 +1,4 @@
+# unrs-resolver arrives transitively via eslint-config-next and ships a
+# postinstall script. Denied: the JS fallback resolver is enough for lint.
+allowBuilds:
+  unrs-resolver: false
