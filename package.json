@@ -4,7 +4,7 @@
   "private": true,
   "description": "Turn elusive production bugs into reproducible tests, verified fixes, and human-approved pull requests.",
   "engines": {
-    "node": ">=22.13.0"
+    "node": ">=22.14.0"
   },
   "scripts": {
     "dev": "next dev",
