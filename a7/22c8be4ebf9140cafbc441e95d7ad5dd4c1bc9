@@ -1,0 +1,19 @@
+package.json
+  s_fadcfb043736a2::t_bfd3f109441eaf 19-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "a722c8be4ebf9140cafbc441e95d7ad5dd4c1bc9",
+  "prompts": {},
+  "sessions": {
+    "s_fadcfb043736a2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8e26c52f-6f65-4b7a-84a1-8d167a820498",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Rishit Sharma <rishitsharmar89@gmail.com>"
+    }
+  }
+}
