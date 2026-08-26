@@ -5,8 +5,10 @@ import { ApprovalCard } from "@/components/approval-card";
 import {
   applyTimelineEvent,
   buildReceipt,
+  describeToolCall,
   extractApproval,
   mapEventToStage,
+  pendingActions,
   STAGES,
 } from "@/lib/timeline";
 
@@ -131,42 +133,87 @@ describe("extractApproval", () => {
   });
 });
 
+function turnDone(
+  output: TrueForgeApi.ModelMessageEvent | null,
+  requiredActions: TrueForgeApi.ActionRequiredEvent[] = [],
+): TrueForgeApi.TurnDoneEvent {
+  return {
+    id: "evt_done",
+    type: "turn.done",
+    createdAt: "2026-08-26T00:09:00Z",
+    threadId: null,
+    state: { status: "done", completedAt: "2026-08-26T00:09:00Z", output, requiredActions },
+  };
+}
+
 describe("buildReceipt", () => {
   it("collects what was written and any pull request link from the final state", () => {
-    const done: TrueForgeApi.TurnDoneEvent = {
-      id: "evt_done",
-      type: "turn.done",
-      createdAt: "2026-08-26T00:09:00Z",
-      threadId: null,
-      state: {
-        status: "done",
-        completedAt: "2026-08-26T00:09:00Z",
-        output: message(
-          "Opened https://github.com/acme/shop/pull/7 fixing checkout in app/cart/page.tsx.",
-        ),
-        requiredActions: [],
-      },
-    };
-
-    const receipt = buildReceipt(done);
+    const receipt = buildReceipt(
+      turnDone(
+        message("Opened https://github.com/acme/shop/pull/7 fixing checkout in app/cart/page.tsx."),
+      ),
+    );
     expect(receipt?.text).toContain("fixing checkout");
     expect(receipt?.links).toEqual(["https://github.com/acme/shop/pull/7"]);
   });
 
   it("stays empty when the turn left nothing behind", () => {
-    const done: TrueForgeApi.TurnDoneEvent = {
-      id: "evt_done",
-      type: "turn.done",
-      createdAt: "2026-08-26T00:09:00Z",
-      threadId: null,
-      state: {
-        status: "done",
-        completedAt: "2026-08-26T00:09:00Z",
-        output: null,
-        requiredActions: [],
+    expect(buildReceipt(turnDone(null))).toBeNull();
+  });
+
+  it("falls back to the last thing the agent said when the turn has no output", () => {
+    // The shape a denial leaves behind: terminal, but with nothing of its own
+    // to report.
+    const receipt = buildReceipt(turnDone(null), "Denied create_branch; nothing was written.");
+
+    expect(receipt?.text).toBe("Denied create_branch; nothing was written.");
+  });
+});
+
+describe("pendingActions", () => {
+  it("reports the decision a paused turn is waiting on", () => {
+    const paused = turnDone(null, [
+      {
+        id: "evt_apr",
+        type: "tool.approval_required",
+        createdAt: "2026-08-26T00:00:03Z",
+        threadId: "thr_main",
+        toolCalls: [{ id: "call_9", sourceEventId: "msg_2" }],
       },
-    };
-    expect(buildReceipt(done)).toBeNull();
+    ]);
+
+    expect(pendingActions(paused)).toHaveLength(1);
+    expect(pendingActions(turnDone(message("done")))).toEqual([]);
+  });
+});
+
+describe("describeToolCall", () => {
+  function wrapped(args: string): TrueForgeApi.ToolCall {
+    return {
+      id: "call_9",
+      type: "function",
+      function: { name: "call_tool", arguments: args },
+      toolInfo: { type: "truefoundry-system", name: "call_tool" },
+    } as unknown as TrueForgeApi.ToolCall;
+  }
+
+  it("names the tool the human is actually approving, not the wrapper", () => {
+    // Every MCP call reaches the model as `call_tool`; showing that on the card
+    // would tell the human nothing about what is about to happen.
+    const summary = describeToolCall(
+      wrapped('{"mcp_server":"github","tool_name":"create_branch","input":{"branch":"gate-test"}}'),
+    );
+
+    expect(summary.name).toBe("create_branch");
+    expect(summary.server).toBe("github");
+    expect(summary.argsJson).toContain("gate-test");
+  });
+
+  it("shows the raw call when the arguments are not the wrapper envelope", () => {
+    const summary = describeToolCall(wrapped("{ truncated"));
+
+    expect(summary.name).toBe("call_tool");
+    expect(summary.argsJson).toBe("{ truncated");
   });
 });
 

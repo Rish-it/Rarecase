@@ -6,7 +6,10 @@ import { ApprovalCard, type ResolvedPending } from "@/components/approval-card";
 import {
   applyTimelineEvent,
   buildReceipt,
+  contentToText,
+  describeToolCall,
   extractApproval,
+  pendingActions,
   STAGES,
   type CaseReceipt,
   type TimelineEntry,
@@ -71,6 +74,9 @@ export function CaseRunner() {
   const toolCallsBySourceEvent = useRef(new Map<string, TrueForgeApi.ToolCall[]>());
   const sessionIdRef = useRef<string | null>(null);
   const activeStream = useRef<AbortController | null>(null);
+  // A turn can end with no output of its own — after a denial, most of all —
+  // so the last thing the agent said stands in as the receipt.
+  const narration = useRef("");
 
   const handleEvent = useCallback((event: StreamEvent) => {
     if ("type" in event && event.type === "case.started") {
@@ -83,8 +89,14 @@ export function CaseRunner() {
       return;
     }
 
-    if (event.type === "model.message" && event.toolCalls) {
-      toolCallsBySourceEvent.current.set(event.id, event.toolCalls);
+    if (event.type === "model.message") {
+      if (event.toolCalls) {
+        toolCallsBySourceEvent.current.set(event.id, event.toolCalls);
+      }
+      const text = contentToText(event.content);
+      if (text) {
+        narration.current = text;
+      }
     }
     setEntries((current) => applyTimelineEvent(current, event));
 
@@ -95,22 +107,21 @@ export function CaseRunner() {
           ? toolCallsBySourceEvent.current.get(approval.sourceEventId)
           : undefined;
         const call = calls?.find((candidate) => candidate.id === approval.toolCallId);
-        setPending({
-          ...approval,
-          name: call?.function.name,
-          argsJson: call?.function.arguments,
-        });
+        setPending({ ...approval, ...(call ? describeToolCall(call) : {}) });
         setPhase("awaiting");
-        // The turn is paused upstream: stop reading this stream so the
-        // resumed one below is the only source of truth.
-        activeStream.current?.abort();
       }
       return;
     }
 
     if (event.type === "turn.done") {
+      // A paused turn still reports done, listing the decision it is waiting
+      // on. Closing the case here would retire the approval card in the same
+      // render it was raised in, and the gate would never be seen.
+      if (pendingActions(event).length > 0) {
+        return;
+      }
       setPending(null);
-      setReceipt(buildReceipt(event));
+      setReceipt(buildReceipt(event, narration.current));
       setPhase("done");
     }
   }, []);
@@ -126,6 +137,7 @@ export function CaseRunner() {
     setError(null);
     setPhase("running");
     toolCallsBySourceEvent.current.clear();
+    narration.current = "";
 
     const controller = new AbortController();
     activeStream.current = controller;
@@ -157,10 +169,15 @@ export function CaseRunner() {
       if (!sessionId || !pending) {
         return;
       }
+      const controller = new AbortController();
+      activeStream.current = controller;
       setDeciding(true);
+      // This decision is spent. The resumed turn raises its own card if it
+      // pauses again, and a case that reaches a pull request pauses at every
+      // write along the way.
+      setPending(null);
+      setPhase("running");
       try {
-        const controller = new AbortController();
-        activeStream.current = controller;
         await consumeSse(
           await fetch(`/api/case/${sessionId}/approve`, {
             method: "POST",
@@ -175,11 +192,15 @@ export function CaseRunner() {
           handleEvent,
         );
       } catch (streamError) {
-        setError(streamError instanceof Error ? streamError.message : String(streamError));
-        setPhase("error");
+        if (!controller.signal.aborted) {
+          setError(streamError instanceof Error ? streamError.message : String(streamError));
+          setPhase("error");
+        }
       } finally {
         setDeciding(false);
-        setPending(null);
+        if (activeStream.current === controller) {
+          activeStream.current = null;
+        }
       }
     },
     [handleEvent, pending],

@@ -5,6 +5,8 @@ import type { PendingApproval } from "@/lib/timeline";
 
 export interface ResolvedPending extends PendingApproval {
   name?: string;
+  /** Which MCP server the call goes to; the blast radius, in one word. */
+  server?: string;
   argsJson?: string;
 }
 
@@ -34,6 +36,7 @@ export function ApprovalCard({ pending, busy, onDecide }: ApprovalCardProps) {
 
       <p className="mt-2 font-mono text-sm break-all">
         {pending.name ?? `unknown tool call ${pending.toolCallId}`}
+        {pending.server ? <span className="ml-2 text-neutral-500">on {pending.server}</span> : null}
       </p>
 
       {pending.argsJson ? (

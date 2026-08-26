@@ -52,7 +52,7 @@ export function mapEventToStage(event: { type: string }): Stage | null {
 }
 
 /** Message content arrives as plain text or structured parts; flatten both. */
-function contentToText(content: TrueForgeApi.ModelMessageEvent["content"]): string {
+export function contentToText(content: TrueForgeApi.ModelMessageEvent["content"]): string {
   if (content == null) {
     return "";
   }
@@ -125,6 +125,50 @@ export interface PendingApproval {
   sourceEventId?: string;
 }
 
+export interface ToolCallSummary {
+  name: string;
+  server?: string;
+  argsJson?: string;
+}
+
+/**
+ * The harness routes every MCP call through its own `call_tool` wrapper, so the
+ * name on the tool call is always `call_tool` and the action the human is
+ * actually being asked to approve sits inside the arguments. Unwrap it, and
+ * fall back to the raw call when the envelope is not the expected shape —
+ * streamed arguments can still be truncated JSON when a turn ends early.
+ */
+export function describeToolCall(call: TrueForgeApi.ToolCall): ToolCallSummary {
+  const raw = call.function.arguments;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (parsed && typeof parsed === "object" && "tool_name" in parsed) {
+      const envelope = parsed as { tool_name?: unknown; mcp_server?: unknown; input?: unknown };
+      if (typeof envelope.tool_name === "string") {
+        return {
+          name: envelope.tool_name,
+          server: typeof envelope.mcp_server === "string" ? envelope.mcp_server : undefined,
+          argsJson: JSON.stringify(envelope.input ?? {}, null, 2),
+        };
+      }
+    }
+  } catch {
+    // Not the wrapper, or not finished streaming: show what we do have.
+  }
+  return { name: call.function.name, argsJson: raw || undefined };
+}
+
+/**
+ * A turn that pauses for a human still reports `turn.done`, with the decision
+ * it is waiting on listed in `requiredActions`. Treating that as the end of the
+ * case would close the approval before it was ever shown.
+ */
+export function pendingActions(
+  event: TrueForgeApi.TurnDoneEvent,
+): TrueForgeApi.ActionRequiredEvent[] {
+  return "requiredActions" in event.state ? event.state.requiredActions : [];
+}
+
 /** Pulls the decision the human owes out of a pause event, if it is one. */
 export function extractApproval(event: TrueForgeApi.TurnStreamingEvent): PendingApproval | null {
   if (event.type !== "tool.approval_required") {
@@ -148,10 +192,18 @@ export interface CaseReceipt {
   links: string[];
 }
 
-/** The receipt is whatever the final message reports, PR links extracted. */
-export function buildReceipt(event: TrueForgeApi.TurnDoneEvent): CaseReceipt | null {
+/**
+ * The receipt is whatever the final message reports, PR links extracted. A turn
+ * can reach a terminal state with no output at all — cancelled, errored, or
+ * stopped after a denial — so the caller may supply the last narration it saw
+ * rather than close the case on a blank panel.
+ */
+export function buildReceipt(
+  event: TrueForgeApi.TurnDoneEvent,
+  fallbackText = "",
+): CaseReceipt | null {
   const output = "output" in event.state ? event.state.output : null;
-  const text = contentToText(output?.content ?? null).trim();
+  const text = (contentToText(output?.content ?? null) || fallbackText).trim();
   if (!text) {
     return null;
   }
