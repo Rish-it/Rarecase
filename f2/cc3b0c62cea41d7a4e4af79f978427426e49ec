@@ -1,0 +1,26 @@
+tests/fixtures/full-case.jsonl
+  s_fadcfb043736a2::t_d19cb412fc44ab 1-81
+tests/unit/stage-routing.test.ts
+  s_fadcfb043736a2::t_9625aae04e8305 17-25,93,139-151,166
+  s_fadcfb043736a2::t_4d9c109cf11d0e 122-138
+components/case-runner.tsx
+  s_fadcfb043736a2::t_a0c445efade369 249-251,253,389-391
+tests/unit/case-runner.test.tsx
+  s_fadcfb043736a2::t_6c5db2100a42fc 2,128-132
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "f2cc3b0c62cea41d7a4e4af79f978427426e49ec",
+  "prompts": {},
+  "sessions": {
+    "s_fadcfb043736a2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8e26c52f-6f65-4b7a-84a1-8d167a820498",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Rishit Sharma <rishitsharmar89@gmail.com>"
+    }
+  }
+}
