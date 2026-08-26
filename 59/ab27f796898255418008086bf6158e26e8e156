@@ -1,0 +1,36 @@
+components/approval-card.tsx
+  s_fadcfb043736a2::t_d9ec66701f2e38 8-9
+  s_fadcfb043736a2::t_9834438180f948 39
+components/case-runner.tsx
+  s_fadcfb043736a2::t_59fc720b965812 9-10,12
+  s_fadcfb043736a2::t_cc61d552160b29 172-173,175-179,195-198,201-203
+  s_fadcfb043736a2::t_a1ca415cc839a9 92-99,110,117-122,124
+  s_fadcfb043736a2::t_52c3cd190c7b78 140
+  s_fadcfb043736a2::t_cc89bcc01bc266 77-79
+tests/unit/timeline.test.tsx
+  s_fadcfb043736a2::t_b28d37c546fa39 8,11
+  s_fadcfb043736a2::t_e7947341a1cfbc 161-181,183-216
+  s_fadcfb043736a2::t_96d0cb73731703 136-148,151-155
+lib/timeline.ts
+  s_fadcfb043736a2::t_d053747360cce5 55
+  s_fadcfb043736a2::t_36952e051be272 195-204,206
+  s_fadcfb043736a2::t_50834dc24df1ba 128-171
+tests/unit/case-runner.test.tsx
+  s_fadcfb043736a2::t_efba45acbcf05d 1-184
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "59ab27f796898255418008086bf6158e26e8e156",
+  "prompts": {},
+  "sessions": {
+    "s_fadcfb043736a2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8e26c52f-6f65-4b7a-84a1-8d167a820498",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Rishit Sharma <rishitsharmar89@gmail.com>"
+    }
+  }
+}
