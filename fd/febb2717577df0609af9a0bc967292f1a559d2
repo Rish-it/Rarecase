@@ -1,0 +1,37 @@
+components/approval-card.tsx
+  s_0596e2db7f4222::t_c20fa00fe1e1ff 1-89
+components/case-runner.tsx
+  s_0596e2db7f4222::t_740266b738a727 71,222-225,300-303
+  s_0596e2db7f4222::t_104205872dcec1 1-70,72-221,226-299,304-309
+tests/unit/timeline.test.tsx
+  s_0596e2db7f4222::t_740266b738a727 162-167
+  s_0596e2db7f4222::t_4a88648c075e21 94-95,98-99
+  s_0596e2db7f4222::t_235ddb99eb1832 1-2
+  s_0596e2db7f4222::t_747ef496ab96f5 3-14,18-93,96-97,100-161,168-230
+  s_0596e2db7f4222::t_ee545919f73a82 15-17
+app/page.tsx
+  s_0596e2db7f4222::t_93d6d57853ea6e 1-2,5-8,11-13
+  s_0596e2db7f4222::t_740266b738a727 9-10
+lib/timeline.ts
+  s_0596e2db7f4222::t_e541b90283b2b2 1-62,64-95,99-103,107-152,155-159
+  s_0596e2db7f4222::t_740266b738a727 106
+  s_0596e2db7f4222::t_c8d7905a92259d 153-154
+  s_0596e2db7f4222::t_35ad2eaf65fb8c 96-98,104-105
+  s_0596e2db7f4222::t_f013411ba29104 63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "fdfebb2717577df0609af9a0bc967292f1a559d2",
+  "prompts": {},
+  "sessions": {
+    "s_0596e2db7f4222": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_fc2f47df5ffebXvFU5ngZZ1C3V",
+        "model": "unknown"
+      },
+      "human_author": "Rishit Sharma <rishitsharmar89@gmail.com>"
+    }
+  }
+}
