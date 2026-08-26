@@ -1,0 +1,21 @@
+.prettierignore
+  s_0596e2db7f4222::t_19edc54341f838 8
+.gitignore
+  s_0596e2db7f4222::t_0c09c4a386834d 5-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "cf99024033e03b7db4678da9bb677a67aaa9bf6a",
+  "prompts": {},
+  "sessions": {
+    "s_0596e2db7f4222": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_fc2f47df5ffebXvFU5ngZZ1C3V",
+        "model": "unknown"
+      },
+      "human_author": "Rishit Sharma <rishitsharmar89@gmail.com>"
+    }
+  }
+}
