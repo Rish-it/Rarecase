@@ -1,0 +1,25 @@
+tests/e2e/harness.spec.ts
+  s_0596e2db7f4222::t_f20a779581475c 5-8
+  s_0596e2db7f4222::t_b87c3cf48e2a0a 14-17
+lib/trueforge.ts
+  s_0596e2db7f4222::t_3a86b1bf5e237f 21-24,38-47,50
+tests/e2e/case.spec.ts
+  s_0596e2db7f4222::t_49d15c751abc3f 1-22,24-59
+  s_0596e2db7f4222::t_e7b46c6cedead3 23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "6128334d7d9579a5906c9cecb8584a4f5c94b875",
+  "prompts": {},
+  "sessions": {
+    "s_0596e2db7f4222": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_fc2f47df5ffebXvFU5ngZZ1C3V",
+        "model": "unknown"
+      },
+      "human_author": "Rishit Sharma <rishitsharmar89@gmail.com>"
+    }
+  }
+}
