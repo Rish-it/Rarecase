@@ -1,0 +1,25 @@
+lib/session.ts
+  s_0596e2db7f4222::t_46974654f0294c 1-143
+tests/unit/session.test.ts
+  s_0596e2db7f4222::t_e362c49b86c394 45-47,49-51
+  s_0596e2db7f4222::t_1b386f0d097063 160
+  s_0596e2db7f4222::t_be0ff4ef1916f3 43
+  s_0596e2db7f4222::t_8d11245454feb4 42,44
+  s_0596e2db7f4222::t_0f0d40def8714b 1-41,48,52-159,161-178
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "b94c6eb3bda013c8fb5af9b5508bde7a2e4acec2",
+  "prompts": {},
+  "sessions": {
+    "s_0596e2db7f4222": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_fc2f47df5ffebXvFU5ngZZ1C3V",
+        "model": "unknown"
+      },
+      "human_author": "Rishit Sharma <rishitsharmar89@gmail.com>"
+    }
+  }
+}
