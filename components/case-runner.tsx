@@ -4,16 +4,17 @@ import { useCallback, useRef, useState } from "react";
 import type { TrueForgeApi } from "@truefoundry/trueforge-sdk";
 import { ApprovalCard, type ResolvedPending } from "@/components/approval-card";
 import {
-  applyTimelineEvent,
+  applyEvent,
   buildReceipt,
   contentToText,
   describeToolCall,
+  emptyTimeline,
   extractApproval,
   pendingActions,
   terminalFailure,
   STAGES,
   type CaseReceipt,
-  type TimelineEntry,
+  type TimelineState,
 } from "@/lib/timeline";
 
 type StreamEvent =
@@ -61,10 +62,37 @@ async function consumeSse(
   }
 }
 
+/**
+ * The agent narrates in markdown. Only the two marks it actually uses to carry
+ * meaning are honoured — emphasis and code — which is a few lines here against
+ * a rendering dependency for prose nobody will click.
+ */
+const INLINE = /(\*\*[^*]+\*\*|`[^`]+`)/g;
+
+function Narration({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(INLINE).map((piece, index) => {
+        if (piece.startsWith("**") && piece.endsWith("**")) {
+          return <strong key={index}>{piece.slice(2, -2)}</strong>;
+        }
+        if (piece.startsWith("`") && piece.endsWith("`") && piece.length > 1) {
+          return (
+            <code key={index} className="font-mono text-[0.9em] text-sky-700 dark:text-sky-400">
+              {piece.slice(1, -1)}
+            </code>
+          );
+        }
+        return piece;
+      })}
+    </>
+  );
+}
+
 export function CaseRunner() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [prompt, setPrompt] = useState("");
-  const [entries, setEntries] = useState<TimelineEntry[]>([]);
+  const [timeline, setTimeline] = useState<TimelineState>(emptyTimeline);
   const [pending, setPending] = useState<ResolvedPending | null>(null);
   const [deciding, setDeciding] = useState(false);
   const [receipt, setReceipt] = useState<CaseReceipt | null>(null);
@@ -99,7 +127,7 @@ export function CaseRunner() {
         narration.current = text;
       }
     }
-    setEntries((current) => applyTimelineEvent(current, event));
+    setTimeline((current) => applyEvent(current, event));
 
     if (event.type === "tool.approval_required") {
       const approval = extractApproval(event);
@@ -142,7 +170,7 @@ export function CaseRunner() {
     if (!trimmed) {
       return;
     }
-    setEntries([]);
+    setTimeline(emptyTimeline());
     setPending(null);
     setReceipt(null);
     setError(null);
@@ -217,9 +245,16 @@ export function CaseRunner() {
     [handleEvent, pending],
   );
 
-  const stageEntries = (stage: (typeof STAGES)[number]) =>
-    entries.filter((entry) => entry.stage === stage);
-  const rawEntries = entries.filter((entry) => entry.stage === null && entry.kind === "event");
+  const working = phase === "running";
+  const rawEntries = timeline.entries.filter(
+    (entry) => entry.stage === null && entry.kind === "event",
+  );
+  // Narration the agent produced before it announced any stage. It has no
+  // honest home on the chain, so it is shown as preamble rather than filed
+  // under a stage it did not claim.
+  const preamble = timeline.entries.filter(
+    (entry) => entry.stage === null && entry.kind === "message" && entry.text,
+  );
 
   return (
     <div className="mt-10">
@@ -247,55 +282,96 @@ export function CaseRunner() {
       </form>
 
       {phase !== "idle" ? (
-        <ol className="mt-8 space-y-6">
-          {STAGES.map((stage) => {
-            const stageOwn = stageEntries(stage);
-            return (
-              <li
-                key={stage}
-                className="border-l-2 border-neutral-200 pl-4 dark:border-neutral-800"
-              >
-                <h2 className="text-sm font-semibold tracking-wide text-neutral-500 uppercase">
-                  {stage}
-                </h2>
-                {stageOwn.length > 0 ? (
-                  <ul className="mt-2 space-y-2">
-                    {stageOwn.map((entry) => (
-                      <li key={entry.key} className="text-sm">
-                        <span className="font-mono text-xs text-neutral-400">{entry.title}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="mt-1 text-sm text-neutral-400">—</p>
-                )}
-                {stage === "Approval" && pending ? (
-                  <div className="mt-2">
-                    <ApprovalCard
-                      pending={pending}
-                      busy={deciding}
-                      onDecide={(decision) => void decide(decision)}
-                    />
-                  </div>
-                ) : null}
-                {stage === "Receipt" && receipt ? (
-                  <div className="mt-2 rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
-                    <p className="text-sm whitespace-pre-wrap">{receipt.text}</p>
-                    {receipt.links.map((link) => (
-                      <a
-                        key={link}
-                        href={link}
-                        className="mt-1 block text-sm text-sky-600 underline dark:text-sky-400"
-                      >
-                        {link}
-                      </a>
-                    ))}
-                  </div>
-                ) : null}
-              </li>
-            );
-          })}
-        </ol>
+        <>
+          {preamble.length > 0 ? (
+            <section className="mt-8 space-y-2" data-testid="preamble">
+              {preamble.map((entry) => (
+                <p key={entry.key} className="text-sm whitespace-pre-wrap text-neutral-500">
+                  <Narration text={entry.text} />
+                </p>
+              ))}
+            </section>
+          ) : null}
+
+          <ol className="mt-8 space-y-6">
+            {STAGES.map((stage) => {
+              const stageOwn = timeline.entries.filter((entry) => entry.stage === stage);
+              const live = working && timeline.stage === stage;
+              return (
+                <li
+                  key={stage}
+                  data-testid={`stage-${stage.toLowerCase()}`}
+                  data-live={live ? "true" : undefined}
+                  className={`border-l-2 pl-4 ${
+                    live
+                      ? "border-sky-500"
+                      : stageOwn.length > 0
+                        ? "border-neutral-400 dark:border-neutral-500"
+                        : "border-neutral-200 dark:border-neutral-800"
+                  }`}
+                >
+                  <h2 className="flex items-center gap-2 text-sm font-semibold tracking-wide text-neutral-500 uppercase">
+                    {stage}
+                    {live ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-normal tracking-normal text-sky-600 normal-case dark:text-sky-400">
+                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-sky-500" />
+                        working
+                      </span>
+                    ) : null}
+                  </h2>
+                  {stageOwn.length > 0 ? (
+                    <ul className="mt-2 space-y-2">
+                      {stageOwn.map((entry) =>
+                        entry.kind === "tool" ? (
+                          <li key={entry.key} className="text-sm">
+                            <span className="font-mono text-xs text-neutral-500 dark:text-neutral-400">
+                              {entry.title}
+                              {entry.settled ? null : " …"}
+                            </span>
+                            {entry.detail ? (
+                              <p className="mt-0.5 text-sm break-words text-neutral-700 dark:text-neutral-300">
+                                {entry.detail}
+                              </p>
+                            ) : null}
+                          </li>
+                        ) : (
+                          <li key={entry.key} className="text-sm whitespace-pre-wrap">
+                            <Narration text={entry.text} />
+                          </li>
+                        ),
+                      )}
+                    </ul>
+                  ) : (
+                    <p className="mt-1 text-sm text-neutral-400">—</p>
+                  )}
+                  {stage === "Approval" && pending ? (
+                    <div className="mt-2">
+                      <ApprovalCard
+                        pending={pending}
+                        busy={deciding}
+                        onDecide={(decision) => void decide(decision)}
+                      />
+                    </div>
+                  ) : null}
+                  {stage === "Receipt" && receipt ? (
+                    <div className="mt-2 rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
+                      <p className="text-sm whitespace-pre-wrap">{receipt.text}</p>
+                      {receipt.links.map((link) => (
+                        <a
+                          key={link}
+                          href={link}
+                          className="mt-1 block text-sm text-sky-600 underline dark:text-sky-400"
+                        >
+                          {link}
+                        </a>
+                      ))}
+                    </div>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ol>
+        </>
       ) : null}
 
       {rawEntries.length > 0 ? (
@@ -311,21 +387,6 @@ export function CaseRunner() {
             ))}
           </ul>
         </details>
-      ) : null}
-
-      {entries.some((entry) => entry.kind === "message" && entry.text) ? (
-        <section className="mt-8 space-y-3">
-          <h2 className="text-sm font-semibold tracking-wide text-neutral-500 uppercase">
-            Agent narration
-          </h2>
-          {entries
-            .filter((entry) => entry.kind === "message" && entry.text)
-            .map((entry) => (
-              <p key={entry.key} className="text-sm whitespace-pre-wrap">
-                {entry.text}
-              </p>
-            ))}
-        </section>
       ) : null}
 
       {phase === "error" && error ? (
