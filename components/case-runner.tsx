@@ -246,8 +246,11 @@ export function CaseRunner() {
   );
 
   const working = phase === "running";
+  // Anything without a stage still has to be visible. Work the agent does
+  // before it announces its first stage belongs to no heading, and dropping it
+  // here made the case file quieter than the truth.
   const rawEntries = timeline.entries.filter(
-    (entry) => entry.stage === null && entry.kind === "event",
+    (entry) => entry.stage === null && entry.kind !== "message",
   );
   // Narration the agent produced before it announced any stage. It has no
   // honest home on the chain, so it is shown as preamble rather than filed
@@ -383,6 +386,9 @@ export function CaseRunner() {
             {rawEntries.map((entry) => (
               <li key={entry.key} className="font-mono text-xs text-neutral-400">
                 {entry.title}
+                {entry.detail ? (
+                  <span className="ml-2 font-sans text-neutral-500">{entry.detail}</span>
+                ) : null}
               </li>
             ))}
           </ul>

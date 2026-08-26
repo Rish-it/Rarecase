@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { CaseRunner } from "@/components/case-runner";
 
 // Without vitest globals, testing-library cannot clean up after itself.
@@ -125,8 +125,11 @@ describe("CaseRunner", () => {
     render(<CaseRunner />);
     openCase();
 
-    expect(await screen.findByText(/create_branch/)).toBeInTheDocument();
-    expect(screen.getByText(/on github/)).toBeInTheDocument();
+    // Scoped to the card: the same call is also listed in the raw log, which is
+    // the point of showing work that has no stage yet.
+    const card = within(await screen.findByLabelText(/pending approval/i));
+    expect(card.getByText(/create_branch/)).toBeInTheDocument();
+    expect(card.getByText(/on github/)).toBeInTheDocument();
     expect(screen.queryByText(/call_tool/)).not.toBeInTheDocument();
   });
 

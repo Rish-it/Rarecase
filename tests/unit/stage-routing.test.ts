@@ -14,10 +14,15 @@ import {
  * actually put on the wire, not about what the SDK types allow — the five dead
  * stages shipped because the whole suite modelled a harness nobody had seen.
  *
- * The recording is one real run against a live harness. It was cancelled by the
- * harness at its 600s execution ceiling while the agent was still gathering
- * evidence, so it covers the opening of the protocol and contains no approval
- * pause. Stages it never reached are asserted absent rather than imagined.
+ * The recording is one real run against a live harness, investigating a real
+ * issue in this repository. The model's response stream died at roughly 92k
+ * tokens, so the agent never left stage 1 and never requested a write: the
+ * recording covers the opening of the protocol and contains no approval pause.
+ * Stages it never reached are asserted absent rather than imagined.
+ *
+ * Streaming fragments are removed. Every marker and every tool call survives on
+ * the assembled messages, and delta merging is covered directly elsewhere, so
+ * keeping 11,347 fragments would have added a megabyte and nothing else.
  */
 const recorded = readFileSync("tests/fixtures/full-case.jsonl", "utf8")
   .trim()
@@ -85,6 +90,7 @@ describe("the recorded case", () => {
     const tools = evidence.filter((entry) => entry.kind === "tool").map((entry) => entry.title);
     expect(tools).toContain("issue_read on github");
     expect(tools).toContain("get_file_contents on github");
+    expect(tools).toContain("list_branches on github");
   });
 
   it("names tools rather than event types", () => {
@@ -113,6 +119,36 @@ describe("the recorded case", () => {
     expect(tools.some((entry) => entry.settled)).toBe(true);
   });
 
+  it("accounts for every action, including work done before any stage", () => {
+    const state = replay();
+
+    // The agent's first act is a sandbox command, before it has announced a
+    // stage. It has no heading to sit under, so the raw log has to carry it:
+    // an empty stage is honest, an action shown nowhere is not.
+    const unstaged = state.entries.filter((entry) => entry.stage === null);
+    const orphanTools = unstaged.filter((entry) => entry.kind === "tool");
+    expect(orphanTools.length).toBeGreaterThan(0);
+
+    const accountedFor = state.entries.filter(
+      (entry) => entry.stage !== null || entry.kind !== "message",
+    );
+    const everyTool = state.entries.filter((entry) => entry.kind === "tool");
+    expect(everyTool.every((tool) => accountedFor.includes(tool))).toBe(true);
+  });
+
+  it("ignores stage markers that appear in tool output", () => {
+    const state = replay();
+
+    // The agent reads SKILL.md on every run, and SKILL.md contains a literal
+    // `**Stage 1: Evidence**` as the mandated example; this recording also has
+    // it reading this very file, whose fixtures name stages 2, 3 and 9. A
+    // cursor that scanned tool responses would teleport between stages by
+    // reading about them.
+    expect(state.stage).toBe("Evidence");
+    expect(state.entries.some((entry) => entry.stage === "Hypothesis")).toBe(false);
+    expect(state.entries.some((entry) => entry.stage === "Diagnosis")).toBe(false);
+  });
+
   it("keeps sandbox.created off Reproduction", () => {
     const state = replay();
     const reproduction = state.entries.filter((entry) => entry.stage === "Reproduction");
@@ -127,7 +163,7 @@ describe("the recorded case", () => {
   it("leaves the stages this run never reached empty", () => {
     const state = replay();
 
-    for (const stage of ["Patch", "Verification", "Approval"] as const) {
+    for (const stage of ["Hypothesis", "Patch", "Verification", "Approval"] as const) {
       expect(state.entries.filter((entry) => entry.stage === stage)).toHaveLength(0);
     }
     expect(state.stage).toBe("Evidence");
