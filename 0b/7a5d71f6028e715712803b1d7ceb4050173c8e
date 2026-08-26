@@ -1,0 +1,31 @@
+app/api/case/[sessionId]/approve/route.ts
+  s_0596e2db7f4222::t_87ccd359c94329 29,35-39
+  s_0596e2db7f4222::t_84d0cc0647f4a4 1-28,30-34,40-50
+tests/unit/case-route.test.ts
+  s_0596e2db7f4222::t_87ccd359c94329 33-38
+  s_0596e2db7f4222::t_d537e1c2a6432e 29-32,39-40
+  s_0596e2db7f4222::t_05f16b66098af6 1-28,41-191,196-218
+  s_0596e2db7f4222::t_1968af0296e5ca 192-195
+lib/sse.ts
+  s_0596e2db7f4222::t_87ccd359c94329 79-82
+  s_0596e2db7f4222::t_8787455771afe2 1-78,83-95
+app/api/case/route.ts
+  s_0596e2db7f4222::t_87ccd359c94329 20,26-30
+  s_0596e2db7f4222::t_b75ea7bc2df6f3 1-19,21-25,31-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "0b7a5d71f6028e715712803b1d7ceb4050173c8e",
+  "prompts": {},
+  "sessions": {
+    "s_0596e2db7f4222": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_fc2f47df5ffebXvFU5ngZZ1C3V",
+        "model": "unknown"
+      },
+      "human_author": "Rishit Sharma <rishitsharmar89@gmail.com>"
+    }
+  }
+}
