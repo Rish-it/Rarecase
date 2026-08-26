@@ -1,0 +1,29 @@
+tests/unit/timeline.test.tsx
+  s_fadcfb043736a2::t_297e38d8e28c54 12
+  s_fadcfb043736a2::t_036daf77f46191 191-233
+lib/timeline.ts
+  s_fadcfb043736a2::t_13ebd8ff92cbb8 172-189
+components/case-runner.tsx
+  s_fadcfb043736a2::t_570b8fb80005fe 13
+  s_fadcfb043736a2::t_093a7559540006 124-133
+tests/unit/case-runner.test.tsx
+  s_fadcfb043736a2::t_202df7f4744f92 180-181
+  s_fadcfb043736a2::t_915862339e45df 171-173
+  s_fadcfb043736a2::t_a8fdeae6e46e74 154-170,174-179,182-183
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "7520c3a1a3e9812d5694f27af310a214362d1201",
+  "prompts": {},
+  "sessions": {
+    "s_fadcfb043736a2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8e26c52f-6f65-4b7a-84a1-8d167a820498",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Rishit Sharma <rishitsharmar89@gmail.com>"
+    }
+  }
+}
