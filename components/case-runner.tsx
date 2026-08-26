@@ -320,6 +320,7 @@ export function CaseRunner() {
       {phase === "error" && error ? (
         <p
           role="alert"
+          data-testid="stream-error"
           className="mt-6 rounded-md bg-red-500/10 p-3 text-sm text-red-600 dark:text-red-400"
         >
           {error}
