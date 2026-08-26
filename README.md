@@ -1,75 +1,68 @@
 # Rarecase
 
-> Turn elusive production bugs into reproducible tests, verified fixes, and human-approved pull requests.
+> One GitHub issue in. An inspectable chain out. Nothing written without a human.
 
-Rarecase is an evidence-first debugging agent for web teams and the first vertical of a verified commit layer for coding agents. It starts from a real production issue, reconstructs the failing environment in an isolated browser sandbox, proves the failure, prepares the smallest defensible fix, proves the fix, and pauses before it writes to GitHub.
+Rarecase is an evidence-first debugging agent. It reads an open issue and the repository it belongs to, reproduces the failure inside a sandbox, explains the mechanism, prepares the smallest defensible patch, proves it with a test that failed before and passes after — and then stops, because the next step writes to GitHub and that decision is not the agent's to make.
 
-## The demo in one minute
+Investigation is autonomous. Mutation is not.
 
-1. Rarecase reads a mobile checkout failure from Sentry through MCP.
-2. It inspects the affected public repository through GitHub MCP.
-3. A saved TrueForge agent loads the Rarecase debugging skill and delegates bounded work to Investigator, Reproducer, and Verifier subagents.
-4. Playwright reproduces the bug inside a Daytona sandbox and captures a trace.
-5. The generated regression test fails before the patch and passes after it.
-6. A human reviews the staged commit and approves or denies the exact GitHub write.
-7. After approval, Rarecase opens a pull request for Qodo to review and records the observed outcome in a commit receipt.
+## The approval gate
 
-The interface presents this as a visual case file: evidence, browser filmstrip, console and network events, root cause, code diff, verification, and an explicit approval checkpoint. Chat is secondary.
+Every external write pauses. The interface names the exact call the agent wants to make — the tool, the server it reaches, the arguments it will send — and waits for Allow or Deny. A denial ends the case: the agent records it and stops, rather than retrying or reaching the same effect with a different tool.
 
-## Product contract
+This is the part worth looking at. An agent that reads and reasons is common; an agent whose every irreversible act is a decision a human made on the record is not.
 
-Rarecase may investigate autonomously. It may not claim a fix without a failing-then-passing test, and it may not mutate a repository without human approval. The hackathon build never merges or deploys code. Every completed case leaves a receipt connecting the source evidence, generated test, proposed diff, approval decision, resulting pull request, and independent review.
+## The protocol
 
-## Locked MVP
+The chain has eight stages, defined in [`skills/rarecase-debugging/SKILL.md`](skills/rarecase-debugging/SKILL.md) and loaded by the agent at the start of every case:
 
-The first end-to-end case is intentionally narrow and reliable:
+`evidence → hypothesis → reproduction → diagnosis → patch → verification → approval → receipt`
 
-- one owned public monorepo;
-- one real Sentry issue emitted by an intentionally faulty demo checkout;
-- one Chromium mobile profile at `390 x 844` under slow network conditions;
-- one defect: a double tap can submit checkout twice;
-- one saved agent, one debugging skill, and three bounded subagent roles;
-- one generated Playwright regression test and one minimal patch;
-- one approval-gated pull request and commit receipt; and
-- one Qodo review surfaced in the case file.
+Three rules do most of the work. Every claim carries a citation, or it is labelled a hypothesis. No product code is edited until a test fails for the reported reason. A fix counts as verified only when the _same unmodified test_ fails on the base revision and passes on the patched tree — editing the test to fit the patch voids the proof and must be reported as a failure.
 
-## Stack at a glance
+Stopping with an honest account of a missing link is a successful outcome. Fabricating the missing link is the failure the protocol exists to prevent.
 
-| Layer                 | Choice                                                               |
-| --------------------- | -------------------------------------------------------------------- |
-| Product app           | Next.js App Router, React, TypeScript                                |
-| Styling and motion    | Tailwind CSS, Radix primitives, Motion                               |
-| Agent runtime         | TrueForge server and `@truefoundry/trueforge-sdk`                    |
-| Reusable instructions | Git-backed Rarecase debugging `SKILL.md`                             |
-| External systems      | Sentry MCP and GitHub MCP                                            |
-| Isolated execution    | Daytona through TrueForge's sandbox-as-tool                          |
-| Browser evidence      | Playwright tests and traces                                          |
-| Error source          | Sentry SDK and Session Replay on the demo route                      |
-| Code review           | Qodo throughout development and on the generated GitHub pull request |
-| Local runtime         | Node.js 22.13+, pnpm, TrueForge SQLite mode                          |
-| Deployment            | Vercel for the web app; TrueForge local for the judged demo          |
+## Architecture
+
+The Next.js app is the only process that talks to the harness; it holds no model, GitHub, or sandbox credential of its own.
+
+| Layer                 | Choice                                                      |
+| --------------------- | ----------------------------------------------------------- |
+| Product app           | Next.js App Router, React 19, TypeScript strict, Tailwind 4 |
+| Input validation      | Zod at every trust boundary, including the environment      |
+| Agent runtime         | TrueForge server and `@truefoundry/trueforge-sdk`           |
+| Reusable instructions | Git-backed `skills/rarecase-debugging/SKILL.md`             |
+| External systems      | GitHub MCP, with `@write` and `@destructive` gated          |
+| Isolated execution    | TrueForge sandbox-as-tool                                   |
+| Delegation            | TrueForge dynamic subagents                                 |
+| Transport             | Server-sent events, one frame per harness event             |
+| Tests                 | Vitest unit tests, Playwright end-to-end                    |
+| Local runtime         | Node.js 22.14+, pnpm, TrueForge in SQLite mode              |
+
+Streaming deserves a note. A single turn emits well over a thousand `model.message.delta` fragments, so the transport merges them into their base message rather than re-serialising a growing message per fragment. A turn that pauses for a human still reports `turn.done`, listing the decision it is waiting on — treating that as the end of the case would retire the approval card in the same render that raised it.
 
 ## Hackathon proof
 
-| Required proof                     | Rarecase makes it visible                                                                                                   |
-| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Reach a real tool through MCP      | Sentry issue reads and GitHub repository reads/writes appear in the TrueForge activity rail.                                |
-| Run generated code in a sandbox    | The generated Playwright regression test executes in a Daytona sandbox provisioned by TrueForge.                            |
-| Delegate meaningful work           | Investigator, Reproducer, and Verifier run as bounded dynamic TrueForge subagents with visible outputs.                     |
-| Use reusable instructions          | The saved agent loads a repository-owned Rarecase debugging skill that defines the evidence and verification protocol.      |
-| Carry context across sessions      | The case is backed by a persistent TrueForge session and restores its stage, artifacts, and pending approval after refresh. |
-| Pause before a sensitive action    | TrueForge pauses before every GitHub write and shows the exact action for Allow/Deny.                                       |
-| Use TrueForge as a core dependency | Sessions, tools, sandbox lifecycle, streamed events, approval, and recovery all depend on the harness.                      |
-| Demonstrate code quality           | Qodo reviews development pull requests throughout the build and independently reviews the agent-generated pull request.     |
+| Required proof                     | Status  | Where                                                                         |
+| ---------------------------------- | ------- | ----------------------------------------------------------------------------- |
+| Use TrueForge as a core dependency | Proven  | Sessions, turns, streamed events, and approvals all route through the harness |
+| Reach a real tool through MCP      | Proven  | GitHub reads and writes, with writes gated behind `@write`                    |
+| Pause before a sensitive action    | Proven  | The approval card, driven by live `tool.approval_required` events             |
+| Use reusable instructions          | Proven  | The saved agent loads the repository-owned debugging skill                    |
+| Run generated code in a sandbox    | Partial | The sandbox is enabled and provisions per case; test execution is in progress |
+| Delegate meaningful work           | Partial | Investigator, Reproducer, and Verifier are defined; visible output is pending |
+| Carry context across sessions      | Planned | Sessions persist in the harness; the UI does not yet restore one              |
+| Demonstrate code quality           | Ongoing | `pnpm verify` gates every branch; reviews run on development pull requests    |
 
 ## Getting started
 
-Requires Node.js 22.13 or newer and pnpm.
+Requires Node.js 22.14 or newer, pnpm, and a TrueForge harness.
 
 ```bash
+npx @truefoundry/trueforge      # harness on http://localhost:8790
 pnpm install
-cp .env.example .env.local     # TrueForge base URL and Sentry DSN
-pnpm dev                       # http://localhost:3000
+cp .env.example .env.local      # harness location only
+pnpm dev                        # http://localhost:3000
 ```
 
 Quality checks, in increasing strength:
@@ -86,8 +79,10 @@ pnpm test:e2e       # Playwright, mobile Chromium at 390x844
 
 Playwright needs its browser once: `pnpm exec playwright install chromium`.
 
-Credentials for models, Sentry, GitHub, and Daytona belong to the TrueForge harness, not to this application. `.env.local` holds only the harness location and the public Sentry DSN used by the checkout fixture.
+The end-to-end suite drives a real case against a live harness and costs several minutes of model work per run. It skips only when nothing answers at the harness address; a harness that answers but misbehaves fails loudly.
 
-## Current status
+## Status
 
-The application shell, quality gates, and the repository-owned debugging skill are in place. The next vertical slice is a real Sentry event, a saved TrueForge agent, a persistent session, and a visible case timeline before autonomous patching is added.
+Working today: the harness connection, the session transport, the case API, the approval gate end to end, and a denial that leaves GitHub untouched — confirmed against GitHub rather than against local UI state.
+
+Known gap: of the eight protocol stages, only Reproduction, Approval, and Receipt currently receive events. The other five render empty because `mapEventToStage` has no rule for them yet. The chain is enforced by the agent and visible in the raw event log, but it is not yet fully drawn in the case file. That is the next change.

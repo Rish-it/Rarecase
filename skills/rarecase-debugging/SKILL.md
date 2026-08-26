@@ -45,15 +45,21 @@ human approves the exact action.
 
 ### 1. Evidence
 
-Read the issue through the Sentry tools: error type and message, stack frames,
-release, environment, device and viewport, breadcrumbs, and the replay context
-when exposed. Then read the repository through the GitHub tools to locate the
-code named by the stack frames.
+Read the issue through the GitHub tools. `issue_read` gives you the report and
+its comments; `search_issues` finds earlier reports of the same symptom;
+`search_code` and `get_file_contents` locate the code the report implicates;
+`list_commits` and `get_commit` show when the behaviour last changed.
 
-Record the base revision SHA now. Every later comparison refers to it.
+A citation is a repository location with a line number, a commit SHA, a quoted
+line from the issue or one of its comments, a sandbox observation, or a test
+result. Nothing else counts as one.
 
-Done when you can state the symptom, the environment it occurred in, and the
-files plausibly responsible, each with a citation.
+Record the base revision SHA now, from `list_branches` or `list_commits`. Every
+later comparison refers to it.
+
+Done when you can state the symptom, the conditions it occurs under, and the
+files plausibly responsible, each with a citation. The reporter's own words are
+evidence of the symptom. They are not evidence of the cause.
 
 ### 2. Hypothesis
 
