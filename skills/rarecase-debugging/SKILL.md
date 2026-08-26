@@ -43,6 +43,15 @@ human approves the exact action.
 
 ## Stages
 
+Announce every stage as you enter it, on its own line, in exactly this form:
+
+`**Stage 1: Evidence**`
+
+Both the number and the name must appear, and both must match the list below.
+The case file attributes your work by reading these markers, so a stage you do
+not announce is a stage the human cannot see you working in. Announce a stage
+once, when you enter it, and do not announce one you are not yet in.
+
 ### 1. Evidence
 
 Read the issue through the GitHub tools. `issue_read` gives you the report and
