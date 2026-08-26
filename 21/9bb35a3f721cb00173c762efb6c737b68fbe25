@@ -1,0 +1,51 @@
+app/api/case/[sessionId]/approve/route.ts
+  s_0596e2db7f4222::t_87ccd359c94329 29,35-39
+  s_0596e2db7f4222::t_84d0cc0647f4a4 1-28,30-34,40-50
+tests/unit/case-route.test.ts
+  s_0596e2db7f4222::t_87ccd359c94329 33-38
+  s_0596e2db7f4222::t_d537e1c2a6432e 29-32,39-40
+  s_0596e2db7f4222::t_05f16b66098af6 1-28,41-191,196-218
+  s_0596e2db7f4222::t_1968af0296e5ca 192-195
+lib/sse.ts
+  s_0596e2db7f4222::t_87ccd359c94329 79-82
+  s_0596e2db7f4222::t_8787455771afe2 1-78,83-95
+app/api/case/route.ts
+  s_0596e2db7f4222::t_87ccd359c94329 20,26-30
+  s_0596e2db7f4222::t_b75ea7bc2df6f3 1-19,21-25,31-46
+components/approval-card.tsx
+  s_0596e2db7f4222::t_c20fa00fe1e1ff 1-89
+components/case-runner.tsx
+  s_0596e2db7f4222::t_740266b738a727 71,222-225,300-303
+  s_0596e2db7f4222::t_104205872dcec1 1-70,72-221,226-299,304-309
+tests/unit/timeline.test.tsx
+  s_0596e2db7f4222::t_740266b738a727 162-167
+  s_0596e2db7f4222::t_4a88648c075e21 94-95,98-99
+  s_0596e2db7f4222::t_235ddb99eb1832 1-2
+  s_0596e2db7f4222::t_747ef496ab96f5 3-14,18-93,96-97,100-161,168-230
+  s_0596e2db7f4222::t_ee545919f73a82 15-17
+app/page.tsx
+  s_0596e2db7f4222::t_93d6d57853ea6e 1-2,5-8,11-13
+  s_0596e2db7f4222::t_740266b738a727 9-10
+lib/timeline.ts
+  s_0596e2db7f4222::t_e541b90283b2b2 1-62,64-95,99-103,107-152,155-159
+  s_0596e2db7f4222::t_740266b738a727 106
+  s_0596e2db7f4222::t_c8d7905a92259d 153-154
+  s_0596e2db7f4222::t_35ad2eaf65fb8c 96-98,104-105
+  s_0596e2db7f4222::t_f013411ba29104 63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "219bb35a3f721cb00173c762efb6c737b68fbe25",
+  "prompts": {},
+  "sessions": {
+    "s_0596e2db7f4222": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_fc2f47df5ffebXvFU5ngZZ1C3V",
+        "model": "unknown"
+      },
+      "human_author": "Rishit Sharma <rishitsharmar89@gmail.com>"
+    }
+  }
+}
