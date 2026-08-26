@@ -2,7 +2,7 @@ import { z } from "zod";
 
 /**
  * Environment is untrusted input, so it is parsed rather than read. Credentials
- * for models, Sentry, GitHub, and Daytona belong to the TrueForge harness; the
+ * for models, GitHub, and the sandbox belong to the TrueForge harness; the
  * only secret this application may hold is the token it uses to reach it.
  */
 const serverEnvSchema = z.object({

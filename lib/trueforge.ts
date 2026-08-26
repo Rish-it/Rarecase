@@ -2,7 +2,7 @@ import { TrueForge } from "@truefoundry/trueforge-sdk";
 import { parseServerEnv } from "./env";
 
 /**
- * Server-only. TrueForge holds the model, Sentry, GitHub, and Daytona
+ * Server-only. TrueForge holds the model, GitHub, and sandbox
  * credentials; this client only needs to know where the harness is and, in
  * hosted mode, how to authenticate to it. Never construct this in a component
  * that ships to the browser.

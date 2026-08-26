@@ -169,6 +169,24 @@ export function pendingActions(
   return "requiredActions" in event.state ? event.state.requiredActions : [];
 }
 
+/**
+ * A turn ends in one of three terminal states, and all three arrive as
+ * `turn.done`. Only `done` produced a case. An error or a cancellation carries
+ * no output, so reading a receipt off it presents a failed run as a finished
+ * one — with the agent's last sentence standing in for a result it never
+ * reached.
+ */
+export function terminalFailure(event: TrueForgeApi.TurnDoneEvent): string | null {
+  const state = event.state;
+  if (state.status === "error") {
+    return state.message || "The harness ended the turn with an error.";
+  }
+  if (state.status === "cancelled") {
+    return `The turn was cancelled: ${state.reason}.`;
+  }
+  return null;
+}
+
 /** Pulls the decision the human owes out of a pause event, if it is one. */
 export function extractApproval(event: TrueForgeApi.TurnStreamingEvent): PendingApproval | null {
   if (event.type !== "tool.approval_required") {

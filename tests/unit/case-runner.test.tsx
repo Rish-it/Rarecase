@@ -151,6 +151,36 @@ describe("CaseRunner", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
+  it("reports a failed turn as a failure rather than a finished case", async () => {
+    // Captured from a real run: the harness ended the turn with a 500 seven
+    // minutes in. Read as a completed case, the agent's last sentence stood in
+    // as the receipt and the run looked successful.
+    const erroredTurnDone = {
+      id: "evt_done",
+      type: "turn.done",
+      createdAt: "2026-08-26T00:08:45Z",
+      threadId: null,
+      state: {
+        status: "error",
+        message: "Request failed (500): Internal server error",
+        completedAt: "2026-08-26T00:08:45Z",
+      },
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(sseResponse([[started, modelMessage, erroredTurnDone]])),
+    );
+
+    render(<CaseRunner />);
+    openCase();
+
+    expect(await screen.findByTestId("stream-error")).toHaveTextContent(/Internal server error/);
+    // Once as narration, and not a second time as a receipt it never earned.
+    expect(screen.getAllByText(/Creating the branch\./)).toHaveLength(1);
+  });
+
   it("sends the denial to the approve endpoint and reports what was not written", async () => {
     const fetchMock = vi
       .fn<typeof fetch>()
