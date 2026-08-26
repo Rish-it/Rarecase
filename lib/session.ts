@@ -53,11 +53,15 @@ function approvalItem(decision: ApprovalDecision): TrueForgeApi.UserToolApproval
 }
 
 /**
- * Coalesces a raw harness stream for consumers: `model.message.delta` chunks
- * are merged into their base `model.message` with the SDK's own helpers, so no
- * raw delta ever escapes this module. The base message is yielded on arrival
- * and re-yielded after each merge, letting readers watch text grow without
- * seeing fragment events. Everything else passes through untouched.
+ * Merges `model.message.delta` chunks into their base `model.message` with the
+ * SDK's own helpers, so the base carries complete text and tool calls by the
+ * time the turn pauses — the approval card reads the pending tool name and
+ * arguments off it, and those only ever arrive as fragments.
+ *
+ * Fragments are forwarded rather than swallowed, and the base is re-yielded
+ * only on arrival and once the model finishes. A single turn emits well over a
+ * thousand fragments, so re-serialising the whole growing message for each one
+ * would put quadratic bandwidth on the wire for no extra information.
  */
 async function* coalesce(raw: AsyncIterable<TrueForgeApi.TurnStreamingEvent>): TurnEvents {
   const pending = new Map<string, TrueForgeApi.ModelMessageDeltaEvent[]>();
@@ -67,14 +71,20 @@ async function* coalesce(raw: AsyncIterable<TrueForgeApi.TurnStreamingEvent>): T
     if (isEventDelta(event)) {
       const base = bases.get(event.id);
       if (!base) {
-        // A delta may arrive before its base; hold it rather than drop text.
+        // A delta may arrive before its base; hold it so the merge still
+        // happens, and forward it so text keeps streaming meanwhile.
         const queued = pending.get(event.id) ?? [];
         queued.push(event);
         pending.set(event.id, queued);
+        yield event;
         continue;
       }
       mergeEventDelta(base, event);
-      yield base;
+      yield event;
+      if (event.finishReason) {
+        // The completed message: the only re-yield a reader actually needs.
+        yield base;
+      }
       continue;
     }
 

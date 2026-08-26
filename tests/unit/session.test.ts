@@ -15,13 +15,25 @@ function message(text: string): MessageEvent {
   };
 }
 
-function delta(id: string, text: string): TrueForgeApi.ModelMessageDeltaEvent {
+function delta(
+  id: string,
+  text: string,
+  toolCalls?: TrueForgeApi.ExtendedChunkDeltaToolCall[],
+): TrueForgeApi.ModelMessageDeltaEvent {
   return {
     id,
     type: "model.message.delta",
     threadId: "thr_main",
     content: text,
+    ...(toolCalls ? { toolCalls } : {}),
   };
+}
+
+/** The fragment that closes a message; only this one re-yields the base. */
+function finished(
+  fragment: TrueForgeApi.ModelMessageDeltaEvent,
+): TrueForgeApi.ModelMessageDeltaEvent {
+  return { ...fragment, finishReason: "tool_calls" };
 }
 
 const approvalRequired: TrueForgeApi.ToolApprovalRequiredEvent = {
@@ -75,28 +87,76 @@ describe("openCase", () => {
     await collect(result.events);
   });
 
-  it("coalesces message deltas into their base model.message", async () => {
+  it("forwards fragments and re-yields the base only once the model finishes", async () => {
     const { client } = fakeClient({
-      events: [message("Hel"), delta("msg_1", "lo"), approvalRequired, delta("msg_1", "!")],
+      events: [message("Hel"), delta("msg_1", "lo"), finished(delta("msg_1", "!"))],
     });
 
     const { events } = await openCase("reproduce it", client);
     const seen = await collect(events);
 
-    // Raw deltas never leak out of the transport.
-    expect(seen.filter((event) => event.type === "model.message.delta")).toHaveLength(0);
-
-    // The base is yielded on arrival and re-yielded after each merge; unrelated
-    // events pass through untouched between them.
+    // One re-yield of the whole message, not one per fragment: a real turn
+    // streams over a thousand of these.
     expect(seen.map((event) => event.type)).toEqual([
       "model.message",
-      "model.message",
-      "tool.approval_required",
+      "model.message.delta",
+      "model.message.delta",
       "model.message",
     ]);
 
     const final = seen.at(-1) as MessageEvent;
     expect(final.content).toBe("Hello!");
+  });
+
+  it("merges a fragment that arrives before its base", async () => {
+    const { client } = fakeClient({
+      events: [delta("msg_1", "Hel"), message("")],
+    });
+
+    const { events } = await openCase("reproduce it", client);
+    const seen = await collect(events);
+
+    // The fragment is still forwarded so text streams, and the late base
+    // arrives already carrying it.
+    expect(seen.map((event) => event.type)).toEqual(["model.message.delta", "model.message"]);
+    expect((seen.at(-1) as MessageEvent).content).toBe("Hel");
+  });
+
+  it("leaves the finished base carrying the tool call the approval card reads", async () => {
+    // The harness opens a tool call with its identity and streams the arguments
+    // in as fragments; `toolInfo` is required or the SDK ignores the slot.
+    const { client } = fakeClient({
+      events: [
+        message(""),
+        delta("msg_1", "", [
+          {
+            index: 0,
+            id: "call_1",
+            type: "function",
+            function: { name: "call_tool", arguments: "" },
+            toolInfo: { type: "truefoundry-system", name: "call_tool" },
+          },
+        ]),
+        finished(
+          delta("msg_1", "", [
+            {
+              index: 0,
+              function: { arguments: '{"mcp_server":"github","tool_name":"create_branch"}' },
+            },
+          ]),
+        ),
+        approvalRequired,
+      ],
+    });
+
+    const { events } = await openCase("reproduce it", client);
+    const seen = await collect(events);
+
+    const base = seen.filter((event) => event.type === "model.message").at(-1) as MessageEvent;
+    expect(base.toolCalls?.[0]).toMatchObject({
+      id: "call_1",
+      function: { arguments: '{"mcp_server":"github","tool_name":"create_branch"}' },
+    });
   });
 
   it("rejects an empty prompt before contacting the harness", async () => {
