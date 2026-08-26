@@ -9,6 +9,7 @@ import {
   extractApproval,
   mapEventToStage,
   pendingActions,
+  terminalFailure,
   STAGES,
 } from "@/lib/timeline";
 
@@ -184,6 +185,49 @@ describe("pendingActions", () => {
 
     expect(pendingActions(paused)).toHaveLength(1);
     expect(pendingActions(turnDone(message("done")))).toEqual([]);
+  });
+});
+
+describe("terminalFailure", () => {
+  function terminal(state: unknown): TrueForgeApi.TurnDoneEvent {
+    return {
+      id: "evt_done",
+      type: "turn.done",
+      createdAt: "2026-08-26T00:09:00Z",
+      threadId: null,
+      state,
+    } as unknown as TrueForgeApi.TurnDoneEvent;
+  }
+
+  it("reports the harness message when the turn errored", () => {
+    // The exact shape a failed run produced: turn.done, status error, no
+    // output at all. Read as a completed case it would show the agent's last
+    // sentence as the result.
+    expect(
+      terminalFailure(
+        terminal({
+          status: "error",
+          message: "Request failed (500): Internal server error",
+          completedAt: "2026-08-26T00:09:00Z",
+        }),
+      ),
+    ).toBe("Request failed (500): Internal server error");
+  });
+
+  it("names the reason when the turn was cancelled", () => {
+    expect(
+      terminalFailure(
+        terminal({
+          status: "cancelled",
+          reason: "server-execution-timeout",
+          completedAt: "2026-08-26T00:09:00Z",
+        }),
+      ),
+    ).toBe("The turn was cancelled: server-execution-timeout.");
+  });
+
+  it("stays silent for a turn that actually finished", () => {
+    expect(terminalFailure(turnDone(message("done")))).toBeNull();
   });
 });
 

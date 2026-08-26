@@ -10,6 +10,7 @@ import {
   describeToolCall,
   extractApproval,
   pendingActions,
+  terminalFailure,
   STAGES,
   type CaseReceipt,
   type TimelineEntry,
@@ -118,6 +119,16 @@ export function CaseRunner() {
       // on. Closing the case here would retire the approval card in the same
       // render it was raised in, and the gate would never be seen.
       if (pendingActions(event).length > 0) {
+        return;
+      }
+      // An errored or cancelled turn is also a turn.done. Falling through to
+      // the receipt would show the agent's last sentence as the outcome of a
+      // case that never finished.
+      const failure = terminalFailure(event);
+      if (failure) {
+        setPending(null);
+        setError(failure);
+        setPhase("error");
         return;
       }
       setPending(null);
